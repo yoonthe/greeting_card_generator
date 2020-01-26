@@ -1,14 +1,38 @@
 import { useEffect, useState, useRef } from 'react';
 import { Application, Texture, Sprite, filters } from 'pixi.js';
-import video from './yangge_star.mp4';
-import video1 from './zhaohe.mp4';
 import styles from './index.less';
 // import Loading from './components/Loading';
 import Header from './components/Header';
 import Start from './components/Start';
-import audio from './love_heart.mp3';
 import Circle from './components/Circle';
 import { throttle } from './utils';
+
+// TODO: 设置 加载资源
+import audio from './love_heart.mp3';
+import video_yangge from './yangge_star.mp4';
+import video_zhaohe from './zhaohe.mp4';
+
+// TODO: 设置 抬头
+const header = '#2020# HAPPY NEW YEAR';
+
+// TODO 设置 主题
+const topic = '#伴我同行#STAND BY ME';
+
+// TODO: 设置 cards 内容
+const content = [
+  '#2019#',
+  '感谢有你',
+  '相伴一年，未来可期'
+];
+
+const cards = [];
+for (let i = 0; i < 6; i++) {
+  cards.push({
+    background: i % 2 === 0 ? video_zhaohe : video_yangge,
+    title: `#伴我同行#STAND BY ME#${i}#`,
+    content,
+  });
+}
 
 const FPS = 30;
 
@@ -33,21 +57,6 @@ const setDarkAnimation = (ticker, gotoDark, callback) => {
   ticker.add(animate);
   return darkFilter;
 };
-
-const content = [
-  '#2019#',
-  '感谢有你',
-  '相伴一年，未来可期'
-];
-
-const cards = [];
-for (let i = 0; i < 6; i++) {
-  cards.push({
-    background: i % 2 === 1 ? video1 : video,
-    title: `#伴我同行#STAND BY ME#${i}#`,
-    content,
-  });
-}
 
 export default function GreetingCards() {
   const [fns, setFns] = useState(null);
@@ -81,6 +90,8 @@ export default function GreetingCards() {
           blurFilter.blur = 8;
           s.filters = [blurFilter, setDarkAnimation(ticker, false)];
           const { resource } = texture.baseTexture;
+          const { width: sWidth, height: sHeight } = resource;
+          const scale = Math.max(width / sWidth, height / sHeight);
           if (resource && resource.source) {
             const { source } = resource;
             source.muted = true;
@@ -88,8 +99,8 @@ export default function GreetingCards() {
             source.autoplay = true;
             setVideoSource(source);
           }
-          s.width = width;
-          s.height = height;
+          s.width = sWidth * scale;
+          s.height = sHeight * scale;
           stage.addChild(s);
         };
         const last = stage.getChildByName('background');
@@ -103,8 +114,8 @@ export default function GreetingCards() {
   }, []);
   return (
     <div className={styles.normal}>
-      <Header header="2019" src={audio} setAudio={setAudioSource} />
-      <Start topic="#伴我同行#STAND BY ME" start={current === -1 ? () => {
+      <Header header={header} src={audio} setAudio={setAudioSource} />
+      <Start topic={topic} start={current === -1 ? () => {
         setCurrent(0);
         if (videoSource) {
           videoSource.play();
