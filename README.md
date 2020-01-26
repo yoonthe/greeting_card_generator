@@ -5,7 +5,7 @@ generate greeting card for celebrate or thanks
 ## Usage
 
 ```sh
-umi block https://github.com/yoonthe/tree/master/greeting_card_generator
+umi block add https://github.com/yoonthe/greeting_card_generator.git --path /test
 ```
 
 ## LICENSE
