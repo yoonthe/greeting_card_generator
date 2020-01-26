@@ -5,12 +5,12 @@ import comma from './comma.svg';
 import { renderTitle } from '../../utils';
 
 export default function Card(props) {
-  const { title, upload, background, content, dark, autoWrap } = props;
+  const { title, setBackground, background, content, dark, autoWrap } = props;
   useEffect(() => {
-    if ( typeof upload === 'function') {
-      return upload(background);
+    if ( typeof setBackground === 'function') {
+      return setBackground(background);
     }
-  }, [upload, background]);
+  }, [setBackground, background]);
   return <div className={classnames(styles.container, dark && styles.dark)} >
     {title && <h4 className={classnames(styles.title, autoWrap && styles.autoWrap)}>{renderTitle(title)}</h4>}
     <div className={styles.content}>

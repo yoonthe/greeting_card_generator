@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Application, Texture, Sprite, filters } from 'pixi.js';
 import styles from './index.less';
-// import Loading from './components/Loading';
+import Loading from './components/Loading';
 import Header from './components/Header';
 import Start from './components/Start';
 import Circle from './components/Circle';
@@ -11,6 +11,8 @@ import { throttle } from './utils';
 import audio from './love_heart.mp3';
 import video_yangge from './yangge_star.mp4';
 import video_zhaohe from './zhaohe.mp4';
+
+const videos = [video_yangge, video_zhaohe];
 
 // TODO: 设置 抬头
 const header = '#2020# HAPPY NEW YEAR';
@@ -58,9 +60,11 @@ const setDarkAnimation = (ticker, gotoDark, callback) => {
   return darkFilter;
 };
 
+let backgroundSources = null;
+let setBackground = null;
+
 export default function GreetingCards() {
-  const [fns, setFns] = useState(null);
-  const [current, setCurrent] = useState(-1);
+  const [current, setCurrent] = useState(-2);
   const [videoSource, setVideoSource] = useState(null);
   const [setAudio, setAudioSource] = useState(null);
   const pixiContainer = useRef(null);
@@ -73,49 +77,57 @@ export default function GreetingCards() {
     document.body.parentNode.style = `font-size: ${18 + 4 * window.devicePixelRatio}px`;
     const { innerWidth: width, innerHeight: height } = window;
     const app = new Application({ width, height });
-    const { stage, ticker } = app;
-    pixiContainer.current.appendChild(app.view);
-    setFns({
-      upload: src => {
-        if (src === null) {
-          return;
-        }
-        const nextBackground = () => {
-          stage.removeChildren();
-          const texture = Texture.from(src);
-          const s = new Sprite(texture);
-          s.name = 'background';
-          const blurFilter = new filters.BlurFilter();
-          
-          blurFilter.blur = 8;
-          s.filters = [blurFilter, setDarkAnimation(ticker, false)];
-          const { resource } = texture.baseTexture;
-          const { width: sWidth, height: sHeight } = resource;
-          const scale = Math.max(width / sWidth, height / sHeight);
-          if (resource && resource.source) {
-            const { source } = resource;
-            source.muted = true;
-            source.loop = true;
-            source.autoplay = true;
-            setVideoSource(source);
-          }
-          s.width = sWidth * scale;
-          s.height = sHeight * scale;
-          stage.addChild(s);
-        };
-        const last = stage.getChildByName('background');
-        if (last) {
-          last.filters[1] = setDarkAnimation(ticker, true, nextBackground);
-        } else {
-          nextBackground();
-        }
-      },
+    const { stage, ticker, loader } = app;
+    videos.forEach(v => loader.add(v));
+    loader.load((loader, resources) => {
+      console.log(loader, resources);
+      backgroundSources = resources;
+      setCurrent(-1);
     });
+    setBackground = src => {
+      if (src === null) {
+        return;
+      }
+      const nextBackground = () => {
+        stage.removeChildren();
+        const texture = Texture.from(backgroundSources && src in backgroundSources ? backgroundSources[src].data : src);
+        const s = new Sprite(texture);
+        s.name = 'background';
+        const blurFilter = new filters.BlurFilter();
+
+        blurFilter.blur = 8;
+        s.filters = [blurFilter, setDarkAnimation(ticker, false)];
+        const { resource } = texture.baseTexture;
+        const { width: sWidth, height: sHeight } = resource;
+        if (sWidth === 0) {
+          s.width = width;
+        }
+        const scale = Math.max(width / sWidth, height / sHeight);
+        if (resource && resource.source) {
+          const { source } = resource;
+          source.muted = true;
+          source.loop = true;
+          source.autoplay = true;
+          setVideoSource(source);
+          source.play();
+        }
+        s.width = sWidth * scale;
+        s.height = sHeight * scale;
+        stage.addChild(s);
+      };
+      const last = stage.getChildByName('background');
+      if (last) {
+        last.filters[1] = setDarkAnimation(ticker, true, nextBackground);
+      } else {
+        nextBackground();
+      }
+    };
+    pixiContainer.current.appendChild(app.view);
   }, []);
   return (
     <div className={styles.normal}>
       <Header header={header} src={audio} setAudio={setAudioSource} />
-      <Start topic={topic} start={current === -1 ? () => {
+      {current === -2 ? <Loading /> : <Start topic={topic} start={current === -1 ? () => {
         setCurrent(0);
         if (videoSource) {
           videoSource.play();
@@ -123,8 +135,8 @@ export default function GreetingCards() {
         if (setAudio && setAudio.handle) {
           setAudio.handle(true);
         }
-      } : null} />
-      <Circle current={current} next={throttle(() => setCurrent(current + 1), 'current', 2500)} fns={fns} cards={cards} >
+      } : null} />}
+      <Circle current={current} next={throttle(() => setCurrent(current + 1), 'current', 1000)} setBackground={setBackground} cards={cards} >
         <div ref={pixiContainer} className={styles.background}></div>
       </Circle>
     </div>
