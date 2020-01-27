@@ -5,7 +5,7 @@
  */
 export const matchAll = (str, regexp) => {
   if (typeof str.matchAll === 'function') {
-    return str.matchAll(regexp);
+    return [...str.matchAll(regexp)];
   }
   const arr = [];
   let match = regexp.exec(str);
@@ -20,11 +20,11 @@ export const renderTitle = title => {
   const res = [];
   let i = 0;
   const arr = matchAll(title, /#([^#]+)#/g);
-  for (const t of arr) {
+  arr.forEach(t => {
     res.push(title.slice(i, t.index));
     res.push(<b key={t[1]}>{t[1]}</b>)
     i = t.index + t[0].length;
-  }
+  });
   res.push(title.slice(i));
   return res;
 };
@@ -37,7 +37,9 @@ export const throttle = (fn, key, time = 1000) => {
     }
     const res = fn(...args);
     throttleMap[key] = true;
-    setTimeout(() => throttleMap[key] = false, time);
+    setTimeout(() => {
+      throttleMap[key] = false;
+    }, time);
     return res;
   }
 };

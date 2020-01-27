@@ -28,7 +28,7 @@ const content = [
 ];
 
 const defaultCards = [];
-for (let i = 0; i < 6; i+= 1) {
+for (let i = 0; i < 6; i += 1) {
   defaultCards.push({
     background: i % 2 === 0 ? videoZhaohe : videoYangge,
     title: `#伴我同行#STAND BY ME#${i}#`,
@@ -60,8 +60,28 @@ const setDarkAnimation = (ticker, gotoDark, callback) => {
   return darkFilter;
 };
 
+(function() {
+  var throttle = function(type, name, obj) {
+      obj = obj || window;
+      var running = false;
+      var func = function() {
+          if (running) { return; }
+          running = true;
+           requestAnimationFrame(function() {
+              obj.dispatchEvent(new CustomEvent(name));
+              running = false;
+          });
+      };
+      obj.addEventListener(type, func);
+  };
+
+  /* init - you can init any event */
+  throttle('resize', 'optimizedResize');
+})();
+
 let backgroundSources = null;
 let setBackground = null;
+let resizeHandler = null;
 
 export default function GreetingCards({ header, audio, topic, cards }) {
   const [current, setCurrent] = useState(-2);
@@ -75,6 +95,14 @@ export default function GreetingCards({ header, audio, topic, cards }) {
     // 设置
     document.body.style = 'margin: 0;';
     document.body.parentNode.style = `font-size: ${18 + 4 * window.devicePixelRatio}px`;
+    window.addEventListener('optimizedResize', () => {
+      const { innerWidth: width, innerHeight: height } = window;
+      app.view.width = width;
+      app.view.height = height;
+      if (typeof resizeHandler === 'function') {
+        resizeHandler(width, height);
+      }
+    });
     const { innerWidth: width, innerHeight: height } = window;
     const app = new Application({ width, height });
     const { stage, ticker, loader } = app;
@@ -98,11 +126,18 @@ export default function GreetingCards({ header, audio, topic, cards }) {
         blurFilter.blur = 8;
         s.filters = [blurFilter, setDarkAnimation(ticker, false)];
         const { resource } = texture.baseTexture;
-        const { width: sWidth, height: sHeight } = resource;
-        if (sWidth === 0) {
-          s.width = width;
-        }
-        const scale = Math.max(width / sWidth, height / sHeight);
+        resizeHandler = (cWidth, cHeight) => {
+          const { width: sWidth, height: sHeight } = resource;
+          if (sWidth === 0) {
+            s.width = cWidth;
+            s.height = cHeight;
+          } else {
+            const scale = Math.max(cWidth / sWidth, cHeight / sHeight);
+            s.width = sWidth * scale;
+            s.height = sHeight * scale;
+          }
+        };
+        resizeHandler(width, height);
         if (resource && resource.source) {
           const { source } = resource;
           source.muted = true;
@@ -111,8 +146,6 @@ export default function GreetingCards({ header, audio, topic, cards }) {
           setVideoSource(source);
           source.play();
         }
-        s.width = sWidth * scale;
-        s.height = sHeight * scale;
         stage.addChild(s);
       };
       const last = stage.getChildByName('background');
