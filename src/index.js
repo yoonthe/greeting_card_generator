@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Application, Texture, Sprite, filters } from 'pixi.js';
 import styles from './index.less';
 import Loading from './components/Loading';
@@ -8,17 +8,17 @@ import Circle from './components/Circle';
 import { throttle } from './utils';
 
 // TODO: 设置 加载资源
-import audio from './love_heart.mp3';
-import video_yangge from './yangge_star.mp4';
-import video_zhaohe from './zhaohe.mp4';
+import audioLoveHeart from './love_heart.mp3';
+import videoYangge from './yangge_star.mp4';
+import videoZhaohe from './zhaohe.mp4';
 
-const videos = [video_yangge, video_zhaohe];
+const videos = [videoYangge, videoZhaohe];
 
 // TODO: 设置 抬头
-const header = '#2020# HAPPY NEW YEAR';
+const defaultHeader = '#2020# HAPPY NEW YEAR';
 
 // TODO 设置 主题
-const topic = '#伴我同行#STAND BY ME';
+const defaultTopic = '#伴我同行#STAND BY ME';
 
 // TODO: 设置 cards 内容
 const content = [
@@ -27,10 +27,10 @@ const content = [
   '相伴一年，未来可期'
 ];
 
-const cards = [];
-for (let i = 0; i < 6; i++) {
-  cards.push({
-    background: i % 2 === 0 ? video_zhaohe : video_yangge,
+const defaultCards = [];
+for (let i = 0; i < 6; i+= 1) {
+  defaultCards.push({
+    background: i % 2 === 0 ? videoZhaohe : videoYangge,
     title: `#伴我同行#STAND BY ME#${i}#`,
     content,
   });
@@ -63,7 +63,7 @@ const setDarkAnimation = (ticker, gotoDark, callback) => {
 let backgroundSources = null;
 let setBackground = null;
 
-export default function GreetingCards() {
+export default function GreetingCards({ header, audio, topic, cards }) {
   const [current, setCurrent] = useState(-2);
   const [videoSource, setVideoSource] = useState(null);
   const [setAudio, setAudioSource] = useState(null);
@@ -79,8 +79,8 @@ export default function GreetingCards() {
     const app = new Application({ width, height });
     const { stage, ticker, loader } = app;
     videos.forEach(v => loader.add(v));
-    loader.load((loader, resources) => {
-      console.log(loader, resources);
+    loader.load((_, resources) => {
+      console.log(_, resources);
       backgroundSources = resources;
       setCurrent(-1);
     });
@@ -144,5 +144,8 @@ export default function GreetingCards() {
 }
 
 GreetingCards.defaultProps = {
-  header: '2019',
+  header: defaultHeader,
+  topic: defaultTopic,
+  cards: defaultCards,
+  audio: audioLoveHeart,
 };
