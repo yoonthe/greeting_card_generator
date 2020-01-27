@@ -12,7 +12,7 @@ import audioLoveHeart from './love_heart.mp3';
 import videoYangge from './yangge_star.mp4';
 import videoZhaohe from './zhaohe.mp4';
 
-const videos = [videoYangge, videoZhaohe];
+const backgrounds = [videoYangge, videoZhaohe];
 
 // TODO: 设置 抬头
 const defaultHeader = '#2020# HAPPY NEW YEAR';
@@ -78,7 +78,7 @@ export default function GreetingCards({ header, audio, topic, cards }) {
     const { innerWidth: width, innerHeight: height } = window;
     const app = new Application({ width, height });
     const { stage, ticker, loader } = app;
-    videos.forEach(v => loader.add(v));
+    backgrounds.forEach(v => loader.add(v));
     loader.load((_, resources) => {
       console.log(_, resources);
       backgroundSources = resources;

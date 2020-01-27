@@ -1,7 +1,25 @@
+/**
+ * 
+ * @param {string} str 
+ * @param {RegExp} regexp 
+ */
+export const matchAll = (str, regexp) => {
+  if (typeof str.matchAll === 'function') {
+    return str.matchAll(regexp);
+  }
+  const arr = [];
+  let match = regexp.exec(str);
+  while (match !== null) {
+    arr.push(match);
+    match = regexp.exec(str);
+  }
+  return arr;
+}
+
 export const renderTitle = title => {
   const res = [];
   let i = 0;
-  const arr = title.matchAll(/#([^#]+)#/g);
+  const arr = matchAll(title, /#([^#]+)#/g);
   for (const t of arr) {
     res.push(title.slice(i, t.index));
     res.push(<b key={t[1]}>{t[1]}</b>)

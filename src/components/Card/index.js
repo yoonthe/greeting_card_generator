@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import classnames from 'classnames';
 import styles from './styles.less';
 import comma from './comma.svg';
