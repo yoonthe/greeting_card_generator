@@ -7,8 +7,9 @@ export default function Circle({ setBackground, current, next, cards, children }
   const { length } = cards;
   const angle = 360 / length;
   const zLen = 1.2 * (50 + 10 * length);
-  return <div onClick={next} style={{ transform: current <= -1 ? 'rotateX(-90deg) rotateY(270deg)' : `rotateY(-${angle * current}deg) translateY(-${(current % 2) * 80}vw)` }} className={classnames(styles.container, current > -1 && styles.anime)}>
-    <div className={styles.background} style={current > -1 ? { transform: `rotateY(${angle * current}deg) translateY(${(current % 2) * 80}vw)` } : {}} >{children}</div>
+  const isOdd = (current % cards.length) % 2;
+  return <div onClick={next} style={{ transform: current <= -1 ? 'rotateX(-90deg) rotateY(270deg)' : `rotateY(-${angle * current}deg) translateY(-${isOdd * 80}vw)` }} className={classnames(styles.container, current > -1 && styles.anime)}>
+    <div className={styles.background} style={current > -1 ? { transform: `rotateY(${angle * current}deg) translateY(${isOdd * 80}vw)` } : {}} >{children}</div>
     {cards.map((card, index) => {
       const isCurrent = index === current % length;
       const props = { ...card };

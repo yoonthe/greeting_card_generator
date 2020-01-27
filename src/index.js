@@ -145,7 +145,9 @@ export default function GreetingCards({ header, audio, topic, cards }) {
           source.loop = true;
           source.autoplay = true;
           setVideoSource(source);
-          source.play();
+          if (typeof source.play === 'function') {
+            source.play();
+          }
         }
         stage.addChild(s);
       };
@@ -163,7 +165,7 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       <Header header={header} src={audio} setAudio={setAudioSource} />
       {current === -2 ? <Loading /> : <Start topic={topic} start={current === -1 ? () => {
         setCurrent(0);
-        if (videoSource) {
+        if (videoSource && typeof videoSource.play === 'function') {
           videoSource.play();
         }
         if (setAudio && setAudio.handle) {
