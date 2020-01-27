@@ -9,10 +9,8 @@ import { throttle } from './utils';
 
 // TODO: 设置 加载资源
 import audioLoveHeart from './love_heart.mp3';
-import videoYangge from './yangge_star.mp4';
 import videoZhaohe from './zhaohe.mp4';
-
-const backgrounds = [videoYangge, videoZhaohe];
+import videoYangge from './yangge_star.mp4';
 
 // TODO: 设置 抬头
 const defaultHeader = '#2020# HAPPY NEW YEAR';
@@ -60,24 +58,21 @@ const setDarkAnimation = (ticker, gotoDark, callback) => {
   return darkFilter;
 };
 
-(function() {
-  var throttle = function(type, name, obj) {
-      obj = obj || window;
-      var running = false;
-      var func = function() {
-          if (running) { return; }
-          running = true;
-           requestAnimationFrame(function() {
-              obj.dispatchEvent(new CustomEvent(name));
-              running = false;
-          });
-      };
-      obj.addEventListener(type, func);
+function throttleWindow(type, name) {
+  let running = false;
+  const func = () => {
+    if (running) { return; }
+    running = true;
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent(name));
+      running = false;
+    });
   };
+  window.addEventListener(type, func);
+};
 
-  /* init - you can init any event */
-  throttle('resize', 'optimizedResize');
-})();
+/* init - you can init any event */
+throttleWindow('resize', 'optimizedResize');
 
 let backgroundSources = null;
 let setBackground = null;
@@ -88,6 +83,12 @@ export default function GreetingCards({ header, audio, topic, cards }) {
   const [videoSource, setVideoSource] = useState(null);
   const [setAudio, setAudioSource] = useState(null);
   const pixiContainer = useRef(null);
+  const backgrounds = new Set();
+  cards.forEach(c => {
+    if (c.background) {
+      backgrounds.add(c.background);
+    }
+  });
   useEffect(() => {
     if (!pixiContainer || !pixiContainer.current) {
       return;
@@ -95,20 +96,20 @@ export default function GreetingCards({ header, audio, topic, cards }) {
     // 设置
     document.body.style = 'margin: 0;';
     document.body.parentNode.style = `font-size: ${18 + 4 * window.devicePixelRatio}px`;
-    window.addEventListener('optimizedResize', () => {
-      const { innerWidth: width, innerHeight: height } = window;
-      app.view.width = width;
-      app.view.height = height;
-      if (typeof resizeHandler === 'function') {
-        resizeHandler(width, height);
-      }
-    });
     const { innerWidth: width, innerHeight: height } = window;
     const app = new Application({ width, height });
-    const { stage, ticker, loader } = app;
+    const { stage, ticker, loader, view } = app;
+    window.addEventListener('optimizedResize', () => {
+      const { innerWidth: cWidth, innerHeight: cHeight } = window;
+      view.width = cWidth;
+      view.height = cHeight;
+      if (typeof resizeHandler === 'function') {
+        resizeHandler(cWidth, cHeight);
+      }
+    });
     backgrounds.forEach(v => loader.add(v));
     loader.load((_, resources) => {
-      console.log(_, resources);
+      // console.log(_, resources);
       backgroundSources = resources;
       setCurrent(-1);
     });
@@ -155,7 +156,7 @@ export default function GreetingCards({ header, audio, topic, cards }) {
         nextBackground();
       }
     };
-    pixiContainer.current.appendChild(app.view);
+    pixiContainer.current.appendChild(view);
   }, []);
   return (
     <div className={styles.normal}>
