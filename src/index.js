@@ -75,6 +75,7 @@ function throttleWindow(type, name) {
 throttleWindow('resize', 'optimizedResize');
 
 let backgroundSources = null;
+let backgroundTextures = {};
 let setBackground = null;
 let resizeHandler = null;
 
@@ -125,6 +126,7 @@ export default function GreetingCards({ header, audio, topic, cards }) {
         source.loop = true;
         source.autoplay = true;
         source.playsInline = true;
+        backgroundTextures[r] = Texture.from(source);
       });
       backgroundSources = resources;
       setCurrent(-1);
@@ -135,7 +137,10 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       }
       const nextBackground = () => {
         stage.removeChildren();
-        const texture = Texture.from(backgroundSources && src in backgroundSources ? backgroundSources[src].data : src);
+        if (!backgroundTextures || !(src in backgroundTextures)) {
+          throw new Error(`${src} is not loaded!`);
+        }
+        const texture = backgroundTextures[src];
         const s = new Sprite(texture);
         s.name = 'background';
         const blurFilter = new filters.BlurFilter();
@@ -173,12 +178,14 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       {current === -2 ? <Loading /> : <Start topic={topic} start={current === -1 ? () => {
         setCurrent(0);
         setBackground(cards[0].background);
-        Object.keys(backgroundSources).forEach(r => {
-          const source = backgroundSources[r].data;
-          if (typeof source.play === 'function') {
-            source.play();
-          }
-        });
+        if (backgroundSources) {
+          Object.keys(backgroundSources).forEach(r => {
+            const source = backgroundSources[r].data;
+            if (typeof source.play === 'function') {
+              source.play();
+            }
+          });
+        }
         if (setAudio && setAudio.handle) {
           setAudio.handle(true);
         }
