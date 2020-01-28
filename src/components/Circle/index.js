@@ -4,7 +4,7 @@ import styles from './circle.less';
 import Card from '../Card';
 import { isIOS } from '../../utils';
 
-export default function Circle({ setBackground, current, next, cards, children }) {
+export default function Circle({ current, next, cards, children }) {
   const { length } = cards;
   const angle = 360 / length;
   const zLen = 1.2 * (50 + 10 * length);
@@ -14,9 +14,6 @@ export default function Circle({ setBackground, current, next, cards, children }
     {cards.map((card, index) => {
       const isCurrent = index === current % length;
       const props = { ...card };
-      if (isCurrent) {
-        props.setBackground = setBackground;
-      }
       return (
         <div className={classnames(styles.card, isCurrent && styles.current)} key={card.key || card.title} style={{ transform: `rotateY(${angle * index}deg) translateZ(${zLen}vw) translateY(${(index % 2) * 80}vw)` }}>
           <Card {...props} />

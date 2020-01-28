@@ -80,7 +80,6 @@ let resizeHandler = null;
 
 export default function GreetingCards({ header, audio, topic, cards }) {
   const [current, setCurrent] = useState(-2);
-  const [videoSource, setVideoSource] = useState(null);
   const [setAudio, setAudioSource] = useState(null);
   const pixiContainer = useRef(null);
   const backgrounds = new Set();
@@ -94,22 +93,39 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       return;
     }
     // 设置
-    document.body.style = 'margin: 0;';
-    document.body.parentNode.style = `font-size: ${18 + 4 * window.devicePixelRatio}px`;
     const { innerWidth: width, innerHeight: height } = window;
+    document.body.style = 'margin: 0;';
+    document.body.parentNode.style = `font-size: ${Math.floor(Math.min(width, height) / 25) + 2 * window.devicePixelRatio}px`;
+
     const app = new Application({ width, height });
     const { stage, ticker, loader, view } = app;
-    window.addEventListener('optimizedResize', () => {
+    //判断手机横竖屏状态
+    const orientationTest = () => {
+      if (window.orientation === 180 || window.orientation === 0) {
+        alert('请先切换至横屏以播放!');
+      }
       const { innerWidth: cWidth, innerHeight: cHeight } = window;
       view.width = cWidth;
       view.height = cHeight;
       if (typeof resizeHandler === 'function') {
         resizeHandler(cWidth, cHeight);
       }
-    });
+    };
+    orientationTest();
+    if ('onorientationchange' in window) {
+      window.addEventListener('orientationchange', orientationTest, false);
+    }
+    window.addEventListener('optimizedResize', orientationTest, false);
     backgrounds.forEach(v => loader.add(v));
     loader.load((_, resources) => {
-      // console.log(_, resources);
+      console.log(_, resources);
+      Object.keys(resources).forEach(r => {
+        const source = resources[r].data;
+        source.muted = true;
+        source.loop = true;
+        source.autoplay = true;
+        source.playsInline = true;
+      });
       backgroundSources = resources;
       setCurrent(-1);
     });
@@ -139,16 +155,6 @@ export default function GreetingCards({ header, audio, topic, cards }) {
           }
         };
         resizeHandler(width, height);
-        if (resource && resource.source) {
-          const { source } = resource;
-          source.muted = true;
-          source.loop = true;
-          source.autoplay = true;
-          setVideoSource(source);
-          if (typeof source.play === 'function') {
-            source.play();
-          }
-        }
         stage.addChild(s);
       };
       const last = stage.getChildByName('background');
@@ -159,20 +165,29 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       }
     };
     pixiContainer.current.appendChild(view);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div className={styles.normal}>
       <Header header={header} src={audio} setAudio={setAudioSource} />
       {current === -2 ? <Loading /> : <Start topic={topic} start={current === -1 ? () => {
         setCurrent(0);
-        if (videoSource && typeof videoSource.play === 'function') {
-          videoSource.play();
-        }
+        setBackground(cards[0].background);
+        Object.keys(backgroundSources).forEach(r => {
+          const source = backgroundSources[r].data;
+          if (typeof source.play === 'function') {
+            source.play();
+          }
+        });
         if (setAudio && setAudio.handle) {
           setAudio.handle(true);
         }
       } : null} />}
-      <Circle current={current} next={throttle(() => setCurrent(current + 1), 'current', 1000)} setBackground={setBackground} cards={cards} >
+      <Circle current={current} next={throttle(() => {
+        setCurrent(current + 1);
+        const card = cards[(current + 1) % cards.length];
+        setBackground(card.background);
+      }, 'current', 1000)} cards={cards} >
         <div ref={pixiContainer} className={styles.background}></div>
       </Circle>
     </div>
