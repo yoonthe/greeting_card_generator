@@ -43,3 +43,8 @@ export const throttle = (fn, key, time = 1000) => {
     return res;
   }
 };
+
+export const isIOS = () => {
+  const u = navigator.userAgent;
+  return !!u.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/); //ios终端
+}

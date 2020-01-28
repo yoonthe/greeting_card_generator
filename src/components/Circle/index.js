@@ -2,13 +2,14 @@ import React from 'react';
 import classnames from 'classnames';
 import styles from './circle.less';
 import Card from '../Card';
+import { isIOS } from '../../utils';
 
 export default function Circle({ setBackground, current, next, cards, children }) {
   const { length } = cards;
   const angle = 360 / length;
   const zLen = 1.2 * (50 + 10 * length);
   const isOdd = (current % cards.length) % 2;
-  return <div onClick={next} style={{ transform: current <= -1 ? 'rotateX(-90deg) rotateY(270deg)' : `rotateY(-${angle * current}deg) translateY(-${isOdd * 80}vw)` }} className={classnames(styles.container, current > -1 && styles.anime)}>
+  return <div onClick={next} style={{ transform: current <= -1 ? 'rotateX(-90deg) rotateY(270deg)' : `rotateY(-${angle * current}deg) translateY(-${isOdd * 80}vw)` }} className={classnames(styles.container, !isIOS() && current > -1 && styles.anime)}>
     <div className={styles.background} style={current > -1 ? { transform: `rotateY(${angle * current}deg) translateY(${isOdd * 80}vw)` } : {}} >{children}</div>
     {cards.map((card, index) => {
       const isCurrent = index === current % length;
