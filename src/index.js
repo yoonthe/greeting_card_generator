@@ -7,8 +7,8 @@ import Start from './components/Start';
 import Circle from './components/Circle';
 import { throttle } from './utils';
 
-// TODO: 设置 加载资源
-import audioLoveHeart from './love_heart.mp3';
+// TODO: 设置 加载资源H
+import audioLoveHeart from './loveHeart.mp3';
 import videoZhaohe from './zhaohe.mp4';
 import videoYangge from './yangge_star.mp4';
 
