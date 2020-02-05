@@ -56,13 +56,21 @@ export default function GreetingCards({ header, audio, topic, cards }) {
   const [current, setCurrent] = useState(-2);
   const [setAudio, setAudioSource] = useState(null);
   const pixiContainer = useRef(null);
-  const backgrounds = new Set();
-  cards.forEach(c => {
-    if (c.background) {
-      backgrounds.add(c.background);
-    }
-  });
   useEffect(() => {
+    const backgrounds = new Set();
+    const backgroundsOptions = {};
+    cards.forEach(c => {
+      if (c.background) {
+        backgrounds.add(c.background);
+        backgroundsOptions[c.background] = {
+          muted: true,
+          loop: true,
+          autoplay: true,
+          playsInline: true,
+          ...c.backgroundsOptions,
+        };
+      }
+    });
     if (!pixiContainer || !pixiContainer.current) {
       return;
     }
@@ -95,10 +103,11 @@ export default function GreetingCards({ header, audio, topic, cards }) {
       console.log(_, resources);
       Object.keys(resources).forEach(r => {
         const source = resources[r].data;
-        source.muted = true;
-        source.loop = true;
-        source.autoplay = true;
-        source.playsInline = true;
+        const { muted, loop, autoplay, playsInline } = backgroundsOptions[r];
+        source.muted = muted;
+        source.loop = loop;
+        source.autoplay = autoplay;
+        source.playsInline = playsInline;
         backgroundTextures[r] = Texture.from(source);
       });
       backgroundSources = resources;
